@@ -177,22 +177,6 @@
     }
     .primary:hover { background: var(--copper-dark); }
     .primary:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--copper-dark); }
-    .secondary {
-      display: block;
-      width: 100%;
-      min-height: 52px;
-      margin-top: 12px;
-      padding: 14px 22px;
-      border-radius: 5px;
-      border: 2px solid var(--copper);
-      background: transparent;
-      color: var(--copper);
-      font-weight: 800;
-      text-align: center;
-      cursor: pointer;
-    }
-    .secondary:hover { background: rgba(179, 84, 30, .08); }
-    .secondary:disabled { opacity: .6; cursor: default; }
     .primary:focus-visible, .answer:focus-visible, .back:focus-visible, input:focus-visible {
       outline: 3px solid var(--aqua);
       outline-offset: 3px;
@@ -424,6 +408,32 @@
         <button class="primary" id="start-button" type="button">Find the leak</button>
       </div>
 
+      <div class="screen capture" id="capture-screen">
+        <p class="result-overline">Your leak check</p>
+        <h2>Your details</h2>
+        <p class="capture-copy">Enter your details to start the check.</p>
+        <div class="lead-box" id="lead-box">
+          <form class="form-grid" id="lead-form" novalidate>
+            <label>First and last name
+              <input id="lead-name" name="name" type="text" autocomplete="name" placeholder="Your name" required />
+            </label>
+            <label>Shop name
+              <input id="lead-shop" name="shop" type="text" autocomplete="organization" placeholder="Your shop" required />
+            </label>
+            <label>Phone
+              <input id="lead-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="Your phone" required />
+            </label>
+            <label>Email
+              <input id="lead-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@shop.com" required />
+            </label>
+            <p class="form-error" id="lead-error" role="alert"></p>
+            <div class="form-actions">
+              <button class="primary" type="submit" id="lead-submit">Continue</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <div class="screen question-screen" id="question-screen">
         <div class="progress-wrap">
           <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>
@@ -433,32 +443,6 @@
         <h2 id="question-title"></h2>
         <div class="answers" id="answers" role="group" aria-labelledby="question-title"></div>
         <button class="back" id="back-button" type="button">Back</button>
-      </div>
-
-      <div class="screen capture" id="capture-screen">
-        <p class="result-overline">Done. 9 of 9.</p>
-        <h2>One more thing</h2>
-        <p class="capture-copy">I need your info to show your score.</p>
-        <div class="lead-box" id="lead-box">
-          <form class="form-grid" id="lead-form" novalidate>
-            <label>First and last name
-              <input id="lead-name" name="name" type="text" autocomplete="name" placeholder="Your name" required />
-            </label>
-            <label>Shop name
-              <input id="lead-shop" name="shop" type="text" autocomplete="organization" placeholder="Your shop" />
-            </label>
-            <label>Phone
-              <input id="lead-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="Your phone" />
-            </label>
-            <label>Email
-              <input id="lead-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@shop.com" required />
-            </label>
-            <p class="form-error" id="lead-error" role="alert"></p>
-            <div class="form-actions">
-              <button class="primary" type="submit" id="lead-submit">Show my score</button>
-            </div>
-          </form>
-        </div>
       </div>
 
       <div class="screen result" id="result-screen">
@@ -472,8 +456,6 @@
         <div class="scores" id="scores" aria-label="Scores by leak"></div>
         <a class="primary" id="booking-link" href="https://cal.com/smhamberlin/15min" target="_blank" rel="noopener noreferrer">Book the 15-minute demo</a>
         <p class="result-note">See how to plug the first leak with Steven.</p>
-        <button class="secondary" id="send-score-btn" type="button">Send me my score and first fix</button>
-        <p class="result-note" id="send-score-note" hidden></p>
       </div>
     </section>
   </main>
@@ -546,32 +528,32 @@
           ]
         },
         {
-          group: "No-shows",
-          question: "How often does a tech roll up to an empty driveway?",
+          group: "Utilization",
+          question: "Do you know which follow-up tools are already inside the software you pay for?",
           answers: [
-            ["Rarely, we confirm everything", 2],
-            ["A couple times a month", 1],
-            ["Often enough that it stings", 0],
+            ["Yes, I've checked what's included", 2],
+            ["I have a rough idea", 1],
+            ["No, I use it for scheduling and invoices", 0],
             ["I'm not sure", 0]
           ]
         },
         {
-          group: "No-shows",
-          question: "Do customers get an automatic confirmation and reminders?",
+          group: "Utilization",
+          question: "Are your app's automatic follow-ups switched on - missed-call texts, quote check-ins, reminders?",
           answers: [
-            ["Yes, they go out automatically", 2],
-            ["We call or text manually, sometimes", 1],
-            ["No", 0],
+            ["Yes, they're all on", 2],
+            ["Some are", 1],
+            ["No, or I don't think so", 0],
             ["I'm not sure", 0]
           ]
         },
         {
-          group: "No-shows",
-          question: "When a customer doesn't confirm, what happens?",
+          group: "Utilization",
+          question: "When did you last compare what your software can do versus what you actually use?",
           answers: [
-            ["We chase them before the truck rolls", 2],
-            ["The truck rolls anyway", 1],
-            ["We have no process for that", 0],
+            ["Recently, I audited it", 2],
+            ["A while ago", 1],
+            ["Never", 0],
             ["I'm not sure", 0]
           ]
         }
@@ -587,11 +569,14 @@
       var selected = new Array(questions.length);
       var advanceTimer;
 
-      // Funnel tracking: events beacon to TRACKING_URL when set (paste an
-      // Apps Script web-app URL here for aggregate stats). Every lead
-      // submission also carries the visitor's full answer path.
+      // Existing event tracking remains disabled until its receiving contract is updated.
       var TRACKING_URL = "";
-      var LEAD_ENDPOINT = "https://formsubmit.co/ajax/steven.hamberlin@gmail.com";
+      var INTAKE_ENDPOINT = "https://automation-x.app.n8n.cloud/webhook/slc-assessment-intake";
+      var FIRST_FIX_PDFS = {
+        "Missed calls": "pdfs/fix-missed-calls.pdf",
+        "Quote follow-up": "pdfs/fix-quote-followup.pdf",
+        "Utilization": "pdfs/fix-utilization.pdf"
+      };
       var funnel = { startedAt: null, qStart: null, questions: [] };
       var lastResult = null;
       var lastLead = null;
@@ -669,18 +654,13 @@
       }
 
       document.getElementById("start-button").addEventListener("click", function () {
-        current = 0;
-        funnel.startedAt = Date.now();
-        funnel.questions = [];
-        track("quiz_started");
-        renderQuestion();
-        showScreen("question");
+        showScreen("capture");
       });
 
       document.getElementById("back-button").addEventListener("click", function () {
         clearTimeout(advanceTimer);
         if (current === 0) {
-          showScreen("intro");
+          showScreen("capture");
         } else {
           current -= 1;
           renderQuestion();
@@ -691,7 +671,7 @@
         var totals = {
           "Missed calls": 0,
           "Quote follow-up": 0,
-          "No-shows": 0
+          "Utilization": 0
         };
         questions.forEach(function (item, index) {
           totals[item.group] += selected[index].score;
@@ -709,7 +689,7 @@
 
       function renderResult() {
         var totals = scoreAssessment();
-        var total = totals["Missed calls"] + totals["Quote follow-up"] + totals["No-shows"];
+        var total = totals["Missed calls"] + totals["Quote follow-up"] + totals["Utilization"];
         var rows = Object.keys(totals).map(function (key, index) {
           return { name: key, score: totals[key], order: index };
         });
@@ -741,7 +721,8 @@
         document.getElementById("result-level").textContent = level;
         document.getElementById("result-summary").textContent = summary;
         document.getElementById("worst-name").textContent = worst;
-        document.getElementById("booking-link").href = "https://cal.com/smhamberlin/15min";
+        document.getElementById("booking-link").href = makeBookingLink(lastLead.name, lastLead.email);
+        document.getElementById("result-screen").dataset.firstFixPdf = FIRST_FIX_PDFS[worst];
 
         lastResult = { level: level, worst: worst, total: total, totals: totals, notSure: notSure };
         track("quiz_completed", {
@@ -750,7 +731,7 @@
           worst: worst,
           missedCalls: totals["Missed calls"],
           quoteFollowUp: totals["Quote follow-up"],
-          noShows: totals["No-shows"],
+          utilization: totals["Utilization"],
           notSure: notSure,
           seconds: funnel.startedAt ? Math.round((Date.now() - funnel.startedAt) / 1000) : null
         });
@@ -801,49 +782,45 @@
         nsItem.appendChild(nsNumber);
         scores.appendChild(nsItem);
 
-        showScreen("capture");
+        showScreen("result");
+        sendIntake(lastResult);
       }
 
       document.getElementById("booking-link").addEventListener("click", function () {
         track("booking_clicked", lastResult ? { level: lastResult.level, worst: lastResult.worst } : {});
       });
 
-      document.getElementById("send-score-btn").addEventListener("click", function () {
-        var btn = document.getElementById("send-score-btn");
-        var note = document.getElementById("send-score-note");
-        if (!lastLead || !lastLead.email) return;
-        var result = lastResult || {};
-        btn.disabled = true;
-        btn.textContent = "Sending...";
-        fetch(LEAD_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({
-            name: lastLead.name,
-            email: lastLead.email,
-            _subject: "Score + fix request: " + lastLead.name,
-            message: "Send the score and first fix to " + lastLead.email + "\n\n" +
-              "Name: " + lastLead.name + "\n" +
-              "Shop: " + (lastLead.shop || "-") + "\n" +
-              "Phone: " + (lastLead.phone || "-") + "\n" +
-              "Result: " + (result.level || "") + " (" + (result.total || "") + "/18)\n" +
-              "Biggest leak: " + (result.worst || "")
-          })
-        }).then(function (response) {
-          if (!response.ok) throw new Error("send failed");
-          return response.json();
-        }).then(function () {
-          note.hidden = false;
-          note.textContent = "Got it. I will email your score and first fix.";
-          btn.textContent = "Sent";
-          track("score_fix_requested", { worst: result.worst });
-        }).catch(function () {
-          btn.disabled = false;
-          btn.textContent = "Send me my score and first fix";
-          note.hidden = false;
-          note.textContent = "That did not go through. Try again.";
+      function sendIntake(result) {
+        var payload = {
+          name: lastLead.name,
+          email: lastLead.email,
+          phone: lastLead.phone,
+          shop: lastLead.shop,
+          scores: {
+            missed_calls: result.totals["Missed calls"],
+            quote_followup: result.totals["Quote follow-up"],
+            utilization: result.totals["Utilization"]
+          },
+          total: result.total,
+          worst_leak: result.worst,
+          level: result.level,
+          submitted_at: new Date().toISOString()
+        };
+        var body = JSON.stringify(payload);
+        function attempt() {
+          return fetch(INTAKE_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain", "Accept": "application/json" },
+            body: body
+          }).then(function (response) {
+            if (!response.ok) throw new Error("Intake failed");
+          });
+        }
+        attempt().catch(attempt).catch(function () {
+          // Intake failure is logged by the browser; it never blocks results.
+          console.warn("Assessment intake did not complete after one retry.");
         });
-      });
+      }
 
       document.getElementById("lead-form").addEventListener("submit", function (event) {
         event.preventDefault();
@@ -852,76 +829,34 @@
         var phoneField = document.getElementById("lead-phone");
         var emailField = document.getElementById("lead-email");
         var error = document.getElementById("lead-error");
-        var submitButton = document.getElementById("lead-submit");
-
         var bad = null;
-        [nameField, emailField].forEach(function (field) {
-          var invalid = !field.checkValidity();
+        [nameField, shopField, phoneField, emailField].forEach(function (field) {
+          var invalid = !field.checkValidity() || !field.value.trim();
           field.setAttribute("aria-invalid", invalid ? "true" : "false");
           if (invalid && !bad) bad = field;
         });
-        [shopField, phoneField].forEach(function (field) {
-          field.setAttribute("aria-invalid", "false");
-        });
-
         if (bad) {
-          error.textContent = bad.type === "email" && bad.value ? "Enter a valid email address." : "Add your name and email to see your score.";
+          error.textContent = bad.type === "email" && bad.value.trim()
+            ? "Enter a valid email address."
+            : "Add your name, shop, phone, and email to continue.";
           bad.focus();
           return;
         }
         error.textContent = "";
-
-        var name = nameField.value.trim();
-        var shop = shopField.value.trim();
-        var phone = phoneField.value.trim();
-        var email = emailField.value.trim();
-        var result = lastResult || { level: "", worst: "", total: "", totals: { "Missed calls": "", "Quote follow-up": "", "No-shows": "" } };
-
-        var lines = [
-          "Name: " + name,
-          "Shop: " + (shop || "-"),
-          "Phone: " + (phone || "-"),
-          "Email: " + email,
-          "",
-          "Result: " + result.level + " (" + result.total + "/18)",
-          "Biggest leak: " + result.worst,
-          "Missed calls: " + result.totals["Missed calls"] + "/6",
-          "Quote follow-up: " + result.totals["Quote follow-up"] + "/6",
-          "No-shows: " + result.totals["No-shows"] + "/6",
-          "Not sure answers: " + (result.notSure != null ? result.notSure : "?") + "/9",
-          "",
-          "Answer path:"
-        ];
-        funnel.questions.forEach(function (entry) {
-          if (entry) lines.push("Q" + entry.q + " [" + entry.group + "]: chose answer " + (entry.answerIndex + 1) + " after " + Math.round(entry.ms / 1000) + "s");
-        });
-
-        submitButton.disabled = true;
-        submitButton.textContent = "Sending...";
-
-        fetch(LEAD_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({
-            name: name,
-            email: email,
-            _subject: "New leak-check lead: " + name + (shop ? " (" + shop + ")" : ""),
-            message: lines.join("\n")
-          })
-        }).then(function (response) {
-          if (!response.ok) throw new Error("send failed");
-          return response.json();
-        }).then(function () {
-          lastLead = { name: name, shop: shop, phone: phone, email: email };
-          document.getElementById("booking-link").href = makeBookingLink(name, email);
-          track("lead_submitted", { level: result.level, worst: result.worst });
-          showScreen("result");
-        }).catch(function () {
-          track("lead_failed", { level: result.level, worst: result.worst });
-          showScreen("result");
-          submitButton.disabled = false;
-          submitButton.textContent = "Show my score";
-        });
+        lastLead = {
+          name: nameField.value.trim(),
+          shop: shopField.value.trim(),
+          phone: phoneField.value.trim(),
+          email: emailField.value.trim()
+        };
+        document.getElementById("booking-link").href = makeBookingLink(lastLead.name, lastLead.email);
+        current = 0;
+        selected = new Array(questions.length);
+        funnel.startedAt = Date.now();
+        funnel.questions = [];
+        track("quiz_started");
+        renderQuestion();
+        showScreen("question");
       });
     })();
   </script>
