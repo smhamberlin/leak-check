@@ -1,0 +1,16 @@
+
+#slc-cookie-panel{box-sizing:border-box;font-family:Inter,Arial,sans-serif;color:#102b38;background:#f4f7f7;font-size:14px;line-height:1.5;letter-spacing:normal;z-index:2147483000}
+#slc-cookie-panel{position:fixed;left:16px;bottom:16px;width:480px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);overflow:auto;border:1px solid #102b38;border-radius:12px;padding:20px;box-shadow:0 4px 24px #0003}
+#slc-cookie-panel[hidden]{display:none!important}
+#slc-cookie-panel h2{font:600 18px/1.3 Inter,Arial,sans-serif;margin:0 0 10px;color:inherit}
+#slc-cookie-panel p{font:400 14px/1.5 Inter,Arial,sans-serif;margin:0 0 14px;color:inherit}
+#slc-cookie-panel a{color:#102b38;text-decoration:underline;text-underline-offset:3px}
+#slc-cookie-actions{display:flex;gap:12px;flex-wrap:wrap}
+#slc-cookie-panel button{appearance:none;font:600 14px/1.4 Inter,Arial,sans-serif;min-height:44px;border:1px solid #102b38;border-radius:6px;padding:10px 16px;cursor:pointer}
+#slc-cookie-panel button{flex:1;color:#102b38;background:#f4f7f7}
+#slc-cookie-panel button:hover{background:#dceff1}
+#slc-cookie-panel button:disabled{opacity:.65;cursor:not-allowed}
+#slc-cookie-panel :focus-visible{outline:3px solid #50afba;outline-offset:3px}
+a[href$="#cookie-preferences"]:focus-visible{outline:2px solid currentColor;outline-offset:4px}
+#slc-cookie-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(max-width:480px){#slc-cookie-panel{left:12px;bottom:max(12px,env(safe-area-inset-bottom));max-width:calc(100vw - 24px);padding:16px}}

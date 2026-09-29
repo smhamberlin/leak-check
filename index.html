@@ -10,6 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <title>Where Is Your Business Leaking?</title>
+  <link rel="stylesheet" href="/consent.css" />
+  <script src="/consent.js" defer></script>
   <style>
     :root {
       color-scheme: light dark;
@@ -341,6 +343,8 @@
     .result .primary { display: block; margin-top: auto; }
     .result-note { margin: 12px 0 0; color: var(--muted); text-align: center; font-size: .8rem; }
 
+    .site-links { display:flex; justify-content:center; gap:20px; flex-wrap:wrap; padding:0 16px 24px; font-size:.82rem; }
+    .site-links a { color:var(--muted); text-underline-offset:3px; }
     .lead-box {
       margin-top: 30px;
       padding: 22px 18px;
@@ -382,7 +386,7 @@
   </style>
 </head>
 <body>
-  <main class="shell">
+  <main class="shell" data-clarity-mask="true">
     <section class="panel" aria-live="polite">
       <div class="screen intro active" id="intro-screen">
         <div class="intro-art" aria-hidden="true">
@@ -452,6 +456,10 @@
       </div>
     </section>
   </main>
+  <footer class="site-links">
+    <a href="https://slcunlimited.app/privacy">Privacy Policy</a>
+    <a href="#cookie-preferences">Cookie preferences</a>
+  </footer>
 
   <script>
     (function () {
