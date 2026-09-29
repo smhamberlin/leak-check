@@ -177,6 +177,22 @@
     }
     .primary:hover { background: var(--copper-dark); }
     .primary:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--copper-dark); }
+    .secondary {
+      display: block;
+      width: 100%;
+      min-height: 52px;
+      margin-top: 12px;
+      padding: 14px 22px;
+      border-radius: 5px;
+      border: 2px solid var(--copper);
+      background: transparent;
+      color: var(--copper);
+      font-weight: 800;
+      text-align: center;
+      cursor: pointer;
+    }
+    .secondary:hover { background: rgba(179, 84, 30, .08); }
+    .secondary:disabled { opacity: .6; cursor: default; }
     .primary:focus-visible, .answer:focus-visible, .back:focus-visible, input:focus-visible {
       outline: 3px solid var(--aqua);
       outline-offset: 3px;
@@ -421,8 +437,8 @@
 
       <div class="screen capture" id="capture-screen">
         <p class="result-overline">Done. 9 of 9.</p>
-        <h2>Where do I send your score?</h2>
-        <p class="capture-copy">Your three leak scores and the first fix. Give me a way to reach you and they are yours.</p>
+        <h2>One more thing</h2>
+        <p class="capture-copy">I need your info to show your score.</p>
         <div class="lead-box" id="lead-box">
           <form class="form-grid" id="lead-form" novalidate>
             <label>First and last name
@@ -456,6 +472,8 @@
         <div class="scores" id="scores" aria-label="Scores by leak"></div>
         <a class="primary" id="booking-link" href="https://cal.com/smhamberlin/15min" target="_blank" rel="noopener noreferrer">Book the 15-minute demo</a>
         <p class="result-note">See how to plug the first leak with Steven.</p>
+        <button class="secondary" id="send-score-btn" type="button">Send me my score and first fix</button>
+        <p class="result-note" id="send-score-note" hidden></p>
       </div>
     </section>
   </main>
@@ -576,6 +594,7 @@
       var LEAD_ENDPOINT = "https://formsubmit.co/ajax/steven.hamberlin@gmail.com";
       var funnel = { startedAt: null, qStart: null, questions: [] };
       var lastResult = null;
+      var lastLead = null;
 
       function track(eventName, data) {
         var payload = { event: eventName, at: new Date().toISOString(), page: "leak-check" };
@@ -789,6 +808,43 @@
         track("booking_clicked", lastResult ? { level: lastResult.level, worst: lastResult.worst } : {});
       });
 
+      document.getElementById("send-score-btn").addEventListener("click", function () {
+        var btn = document.getElementById("send-score-btn");
+        var note = document.getElementById("send-score-note");
+        if (!lastLead || !lastLead.email) return;
+        var result = lastResult || {};
+        btn.disabled = true;
+        btn.textContent = "Sending...";
+        fetch(LEAD_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({
+            name: lastLead.name,
+            email: lastLead.email,
+            _subject: "Score + fix request: " + lastLead.name,
+            message: "Send the score and first fix to " + lastLead.email + "\n\n" +
+              "Name: " + lastLead.name + "\n" +
+              "Shop: " + (lastLead.shop || "-") + "\n" +
+              "Phone: " + (lastLead.phone || "-") + "\n" +
+              "Result: " + (result.level || "") + " (" + (result.total || "") + "/18)\n" +
+              "Biggest leak: " + (result.worst || "")
+          })
+        }).then(function (response) {
+          if (!response.ok) throw new Error("send failed");
+          return response.json();
+        }).then(function () {
+          note.hidden = false;
+          note.textContent = "Got it. I will email your score and first fix.";
+          btn.textContent = "Sent";
+          track("score_fix_requested", { worst: result.worst });
+        }).catch(function () {
+          btn.disabled = false;
+          btn.textContent = "Send me my score and first fix";
+          note.hidden = false;
+          note.textContent = "That did not go through. Try again.";
+        });
+      });
+
       document.getElementById("lead-form").addEventListener("submit", function (event) {
         event.preventDefault();
         var nameField = document.getElementById("lead-name");
@@ -809,7 +865,7 @@
         });
 
         if (bad) {
-          error.textContent = bad.type === "email" && bad.value ? "Enter a valid email address." : "Add your name and email so we can send the report.";
+          error.textContent = bad.type === "email" && bad.value ? "Enter a valid email address." : "Add your name and email to see your score.";
           bad.focus();
           return;
         }
@@ -856,6 +912,7 @@
           if (!response.ok) throw new Error("send failed");
           return response.json();
         }).then(function () {
+          lastLead = { name: name, shop: shop, phone: phone, email: email };
           document.getElementById("booking-link").href = makeBookingLink(name, email);
           track("lead_submitted", { level: result.level, worst: result.worst });
           showScreen("result");
@@ -863,7 +920,7 @@
           track("lead_failed", { level: result.level, worst: result.worst });
           showScreen("result");
           submitButton.disabled = false;
-          submitButton.textContent = "Send my report";
+          submitButton.textContent = "Show my score";
         });
       });
     })();
