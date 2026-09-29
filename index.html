@@ -419,20 +419,11 @@
         <button class="back" id="back-button" type="button">Back</button>
       </div>
 
-      <div class="screen result" id="result-screen">
-        <p class="result-overline">Your leak check</p>
-        <h2 class="result-level" id="result-level">Leaking</h2>
-        <p class="result-summary" id="result-summary"></p>
-        <div class="worst-callout">
-          <div class="drop" aria-hidden="true"></div>
-          <div><span>Biggest leak</span><strong id="worst-name"></strong></div>
-        </div>
-        <div class="scores" id="scores" aria-label="Scores by leak"></div>
-        <a class="primary" id="booking-link" href="https://cal.com/smhamberlin/15min" target="_blank" rel="noopener noreferrer">Book the 15-minute demo</a>
-        <p class="result-note">See how to plug the first leak with Steven.</p>
+      <div class="screen capture" id="capture-screen">
+        <p class="result-overline">Done. 9 of 9.</p>
+        <h2>Where do I send your score?</h2>
+        <p class="capture-copy">Your three leak scores and the first fix. Give me a way to reach you and they are yours.</p>
         <div class="lead-box" id="lead-box">
-          <h3>Email me my leak report</h3>
-          <p class="lead-copy">Your three scores and the first fix, sent to your inbox.</p>
           <form class="form-grid" id="lead-form" novalidate>
             <label>First and last name
               <input id="lead-name" name="name" type="text" autocomplete="name" placeholder="Your name" required />
@@ -448,11 +439,23 @@
             </label>
             <p class="form-error" id="lead-error" role="alert"></p>
             <div class="form-actions">
-              <button class="primary" type="submit" id="lead-submit">Send my report</button>
+              <button class="primary" type="submit" id="lead-submit">Show my score</button>
             </div>
           </form>
-          <p class="lead-success" id="lead-success" hidden>Got it. Your report is on its way.</p>
         </div>
+      </div>
+
+      <div class="screen result" id="result-screen">
+        <p class="result-overline">Your leak check</p>
+        <h2 class="result-level" id="result-level">Leaking</h2>
+        <p class="result-summary" id="result-summary"></p>
+        <div class="worst-callout">
+          <div class="drop" aria-hidden="true"></div>
+          <div><span>Biggest leak</span><strong id="worst-name"></strong></div>
+        </div>
+        <div class="scores" id="scores" aria-label="Scores by leak"></div>
+        <a class="primary" id="booking-link" href="https://cal.com/smhamberlin/15min" target="_blank" rel="noopener noreferrer">Book the 15-minute demo</a>
+        <p class="result-note">See how to plug the first leak with Steven.</p>
       </div>
     </section>
   </main>
@@ -559,6 +562,7 @@
       var screens = {
         intro: document.getElementById("intro-screen"),
         question: document.getElementById("question-screen"),
+        capture: document.getElementById("capture-screen"),
         result: document.getElementById("result-screen")
       };
       var current = 0;
@@ -778,7 +782,7 @@
         nsItem.appendChild(nsNumber);
         scores.appendChild(nsItem);
 
-        showScreen("result");
+        showScreen("capture");
       }
 
       document.getElementById("booking-link").addEventListener("click", function () {
@@ -852,12 +856,12 @@
           if (!response.ok) throw new Error("send failed");
           return response.json();
         }).then(function () {
-          document.getElementById("lead-form").style.display = "none";
-          document.getElementById("lead-success").hidden = false;
           document.getElementById("booking-link").href = makeBookingLink(name, email);
           track("lead_submitted", { level: result.level, worst: result.worst });
+          showScreen("result");
         }).catch(function () {
-          error.textContent = "Something went wrong sending that. Tap again.";
+          track("lead_failed", { level: result.level, worst: result.worst });
+          showScreen("result");
           submitButton.disabled = false;
           submitButton.textContent = "Send my report";
         });
