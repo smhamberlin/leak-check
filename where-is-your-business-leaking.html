@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#0b2533" />
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Where Is Your Business Leaking?</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #102b38;
+      --muted: #526771;
+      --paper: #f4f7f7;
+      --surface: #ffffff;
+      --line: #cbd7da;
+      --navy: #0b2533;
+      --navy-soft: #173d4d;
+      --copper: #d96632;
+      --copper-dark: #ad421c;
+      --aqua: #50afba;
+      --aqua-pale: #dceff1;
+      --error: #b82424;
+      --shadow: 0 18px 48px rgba(4, 34, 47, .12);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #eef6f7;
+        --muted: #aebfc4;
+        --paper: #081820;
+        --surface: #102933;
+        --line: #34505b;
+        --navy: #06171e;
+        --navy-soft: #173b49;
+        --copper: #f07b47;
+        --copper-dark: #ff9c70;
+        --aqua: #68c4cd;
+        --aqua-pale: #153c44;
+        --error: #ff8e8e;
+        --shadow: 0 18px 48px rgba(0, 0, 0, .3);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--paper); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, var(--navy) 0 9.5rem, var(--paper) 9.5rem 100%);
+      color: var(--ink);
+      font-family: "DM Sans", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    .shell {
+      width: min(100%, 760px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: max(20px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+      display: grid;
+      align-items: start;
+    }
+
+    .panel {
+      width: 100%;
+      min-height: min(710px, calc(100vh - 48px));
+      background: var(--surface);
+      border-radius: 10px 10px 26px 10px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen {
+      display: none;
+      flex: 1;
+      padding: 28px 22px 24px;
+      animation: screen-in .22s ease-out;
+    }
+    .screen.active { display: flex; flex-direction: column; }
+
+    @keyframes screen-in {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .screen { animation: none; }
+      * { scroll-behavior: auto !important; }
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, .result-level, .score-number {
+      font-family: "Barlow Condensed", sans-serif;
+      letter-spacing: -.02em;
+    }
+    h1 {
+      max-width: 11ch;
+      margin-bottom: 16px;
+      font-size: clamp(3.2rem, 15vw, 5.8rem);
+      line-height: .88;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    h2 {
+      margin-bottom: 24px;
+      font-size: clamp(2rem, 7.5vw, 3.15rem);
+      line-height: 1.02;
+    }
+    p { line-height: 1.55; }
+
+    .intro {
+      padding-top: 34px;
+      background:
+        linear-gradient(145deg, transparent 0 72%, var(--aqua-pale) 72% 100%);
+    }
+    .intro-art {
+      height: 118px;
+      margin: 2px 0 30px;
+      color: var(--copper);
+    }
+    .intro-art svg { width: 100%; height: 100%; overflow: visible; }
+    .intro-copy {
+      max-width: 35rem;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+    .intro-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      margin: 4px 0 30px;
+      padding: 0;
+      list-style: none;
+      color: var(--ink);
+      font-size: .93rem;
+      font-weight: 700;
+    }
+    .intro-meta li::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin: 0 8px 1px 0;
+      border-radius: 50%;
+      background: var(--aqua);
+    }
+
+    .primary,
+    .answer {
+      border: 0;
+      cursor: pointer;
+    }
+    .primary {
+      min-height: 58px;
+      padding: 16px 22px;
+      border-radius: 5px;
+      background: var(--copper);
+      color: #fff;
+      font-weight: 800;
+      text-align: center;
+      text-decoration: none;
+      box-shadow: 0 5px 0 var(--copper-dark);
+      transition: transform .14s ease, box-shadow .14s ease, background .14s ease;
+    }
+    .primary:hover { background: var(--copper-dark); }
+    .primary:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--copper-dark); }
+    .primary:focus-visible, .answer:focus-visible, .back:focus-visible, input:focus-visible {
+      outline: 3px solid var(--aqua);
+      outline-offset: 3px;
+    }
+    .intro .primary { align-self: flex-start; min-width: 180px; margin-top: auto; }
+
+    .progress-wrap {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .progress-track {
+      height: 7px;
+      border-radius: 99px;
+      background: var(--line);
+      overflow: hidden;
+    }
+    .progress-fill {
+      width: 11.111%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--aqua);
+      transition: width .22s ease;
+    }
+    .progress-label {
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .section-label {
+      margin-bottom: 10px;
+      color: var(--copper-dark);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .answers {
+      display: grid;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .answer {
+      position: relative;
+      min-height: 68px;
+      padding: 16px 48px 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: .98rem;
+      font-weight: 650;
+      line-height: 1.35;
+      text-align: left;
+      transition: border-color .14s ease, background .14s ease, transform .14s ease;
+    }
+    .answer::after {
+      content: "";
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      width: 9px;
+      height: 9px;
+      border-top: 2px solid var(--muted);
+      border-right: 2px solid var(--muted);
+      transform: translateY(-50%) rotate(45deg);
+    }
+    .answer:hover { border-color: var(--aqua); background: var(--aqua-pale); }
+    .answer:active { transform: translateY(1px); }
+    .answer.selected { border-color: var(--aqua); background: var(--aqua-pale); }
+    .back {
+      align-self: flex-start;
+      min-height: 44px;
+      margin-top: auto;
+      padding: 12px 2px 0;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .back:hover { color: var(--ink); }
+
+    .capture { padding-top: 32px; }
+    .capture h2 { margin-bottom: 10px; }
+    .capture-copy { color: var(--muted); margin-bottom: 24px; }
+    .form-grid { display: grid; gap: 15px; }
+    label { display: grid; gap: 7px; color: var(--ink); font-size: .86rem; font-weight: 750; }
+    input {
+      width: 100%;
+      min-height: 52px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--ink);
+    }
+    input::placeholder { color: var(--muted); opacity: .8; }
+    input[aria-invalid="true"] { border-color: var(--error); }
+    .form-error {
+      min-height: 1.3em;
+      margin: 2px 0 0;
+      color: var(--error);
+      font-size: .85rem;
+      font-weight: 700;
+    }
+    .form-actions {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .result { padding-top: 30px; }
+    .result-overline {
+      margin: 0 0 6px;
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .result-level {
+      margin: 0;
+      font-size: clamp(3rem, 13vw, 5.1rem);
+      line-height: .9;
+      text-transform: uppercase;
+    }
+    .result-summary {
+      max-width: 38rem;
+      margin: 18px 0 25px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+    .worst-callout {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 13px;
+      align-items: center;
+      margin-bottom: 25px;
+      padding: 14px 16px;
+      border-radius: 6px;
+      background: var(--aqua-pale);
+    }
+    .drop {
+      width: 25px;
+      height: 30px;
+      border-radius: 55% 45% 58% 42% / 65% 46% 54% 35%;
+      background: var(--aqua);
+      transform: rotate(45deg);
+    }
+    .worst-callout span { display: block; color: var(--muted); font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+    .worst-callout strong { display: block; margin-top: 2px; font-size: 1.05rem; }
+    .scores { display: grid; gap: 17px; margin-bottom: 30px; }
+    .score-row { display: grid; grid-template-columns: 1fr auto; gap: 7px 16px; align-items: end; }
+    .score-name { font-size: .92rem; font-weight: 800; }
+    .score-number { color: var(--muted); font-size: 1.25rem; line-height: 1; font-weight: 700; }
+    .score-number strong { color: var(--ink); font-size: 1.7rem; }
+    .score-track { grid-column: 1 / -1; height: 11px; border-radius: 99px; background: var(--line); overflow: hidden; }
+    .score-fill { height: 100%; border-radius: inherit; background: var(--aqua); }
+    .score-row:first-child .score-fill { background: var(--copper); }
+    .result .primary { display: block; margin-top: auto; }
+    .result-note { margin: 12px 0 0; color: var(--muted); text-align: center; font-size: .8rem; }
+
+    @media (min-width: 640px) {
+      .shell { padding: 34px 26px; align-items: center; }
+      .panel { min-height: 700px; }
+      .screen { padding: 42px 52px 36px; }
+      .intro { padding-top: 48px; }
+      .form-grid { grid-template-columns: 1fr 1fr; gap: 17px 18px; }
+      .form-actions, .form-error { grid-column: 1 / -1; }
+      .answer { font-size: 1.03rem; }
+    }
+
+    @media (max-height: 700px) {
+      .panel { min-height: calc(100vh - 32px); }
+      .screen { padding-top: 22px; }
+      .intro-art { height: 80px; margin-bottom: 20px; }
+      h1 { font-size: 3.4rem; }
+      .progress-wrap { margin-bottom: 18px; }
+      .answers { gap: 9px; }
+      .answer { min-height: 60px; padding-top: 12px; padding-bottom: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel" aria-live="polite">
+      <div class="screen intro active" id="intro-screen">
+        <div class="intro-art" aria-hidden="true">
+          <svg viewBox="0 0 620 140" fill="none">
+            <path d="M5 36h205c31 0 55 24 55 55v45" stroke="currentColor" stroke-width="22" stroke-linecap="square"/>
+            <path d="M5 36h205c31 0 55 24 55 55v45" stroke="#102b38" stroke-opacity=".22" stroke-width="3"/>
+            <path d="M255 102h20M255 121h20" stroke="currentColor" stroke-width="8"/>
+            <path d="M345 35h270M345 35v56" stroke="currentColor" stroke-width="22" stroke-linecap="square"/>
+            <path d="M345 35h270M345 35v56" stroke="#102b38" stroke-opacity=".22" stroke-width="3"/>
+            <path d="M335 87h20M335 106h20" stroke="currentColor" stroke-width="8"/>
+            <path d="M305 84c0 0-15 18-15 29a15 15 0 0 0 30 0c0-11-15-29-15-29Z" fill="var(--aqua)"/>
+          </svg>
+        </div>
+        <h1>Where is your business leaking?</h1>
+        <p class="intro-copy">Nine quick questions to spot where calls, quotes, or scheduled jobs may be slipping away.</p>
+        <ul class="intro-meta" aria-label="Assessment details">
+          <li>Takes about two minutes</li>
+        </ul>
+        <button class="primary" id="start-button" type="button">Find the leak</button>
+      </div>
+
+      <div class="screen question-screen" id="question-screen">
+        <div class="progress-wrap">
+          <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>
+          <span class="progress-label" id="progress-label">1 of 9</span>
+        </div>
+        <p class="section-label" id="section-label">Missed calls</p>
+        <h2 id="question-title"></h2>
+        <div class="answers" id="answers" role="group" aria-labelledby="question-title"></div>
+        <button class="back" id="back-button" type="button">Back</button>
+      </div>
+
+      <div class="screen capture" id="capture-screen">
+        <p class="section-label">Your score is ready</p>
+        <h2>Where should we send you next?</h2>
+        <p class="capture-copy">Add your details to see all three leak scores and the first place to focus.</p>
+        <form class="form-grid" id="contact-form" novalidate>
+          <label>First and last name
+            <input id="name" name="name" type="text" autocomplete="name" placeholder="Your name" required />
+          </label>
+          <label>Shop name
+            <input id="shop" name="shop" type="text" autocomplete="organization" placeholder="Your shop" required />
+          </label>
+          <label>Phone
+            <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="Your phone" required />
+          </label>
+          <label>Email
+            <input id="email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@shop.com" required />
+          </label>
+          <p class="form-error" id="form-error" role="alert"></p>
+          <div class="form-actions">
+            <button class="primary" type="submit">Show my score</button>
+            <button class="back" id="capture-back" type="button">Back to the last question</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="screen result" id="result-screen">
+        <p class="result-overline">Your leak check</p>
+        <h2 class="result-level" id="result-level">Leaking</h2>
+        <p class="result-summary" id="result-summary"></p>
+        <div class="worst-callout">
+          <div class="drop" aria-hidden="true"></div>
+          <div><span>Biggest leak</span><strong id="worst-name"></strong></div>
+        </div>
+        <div class="scores" id="scores" aria-label="Scores by leak"></div>
+        <a class="primary" id="booking-link" href="https://cal.com/smhamberlin/15min" target="_blank" rel="noopener noreferrer">Book the 15-minute demo</a>
+        <p class="result-note">See how to plug the first leak with Steven.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var questions = [
+        {
+          group: "Missed calls",
+          question: "When a customer calls after hours and nobody picks up, what happens?",
+          answers: [
+            ["We answer or call back within minutes", 2],
+            ["We call back the next morning", 1],
+            ["They probably call someone else", 0],
+            ["I'm not sure what happens", 0]
+          ]
+        },
+        {
+          group: "Missed calls",
+          question: "How many calls do you think the shop misses in a typical week?",
+          answers: [
+            ["0 to 1", 2],
+            ["2 to 5", 1],
+            ["6 or more", 0],
+            ["I'm not sure", 0]
+          ]
+        },
+        {
+          group: "Missed calls",
+          question: "Do you know how many after-hours calls you got last month?",
+          answers: [
+            ["Yes, we track it", 2],
+            ["We have a rough idea", 1],
+            ["No, we do not track it", 0],
+            ["I'm not sure", 0]
+          ]
+        },
+        {
+          group: "Quote follow-up",
+          question: "After you send a quote, who follows up with the homeowner?",
+          answers: [
+            ["We follow up every quote on a schedule", 2],
+            ["Someone follows up when we remember", 1],
+            ["Nobody, we wait for them to call back", 0],
+            ["I'm not sure", 0]
+          ]
+        },
+        {
+          group: "Quote follow-up",
+          question: "How many times does a quote get touched after it goes out?",
+          answers: [
+            ["3 or more touches", 2],
+            ["1 or 2 touches", 1],
+            ["Zero", 0],
+            ["I'm not sure", 0]
+          ]
+        },
+        {
+          group: "Quote follow-up",
+          question: "Do you know your quote close rate?",
+          answers: [
+            ["Yes", 2],
+            ["We have a rough idea", 1],
+            ["No", 0],
+            ["I'm not sure", 0]
+          ]
+        },
+        {
+          group: "No-shows",
+          question: "How often does a tech roll up to an empty driveway?",
+          answers: [
+            ["Rarely, we confirm everything", 2],
+            ["A couple times a month", 1],
+            ["Often enough that it stings", 0],
+            ["I'm not sure", 0]
+          ]
+        },
+        {
+          group: "No-shows",
+          question: "Do customers get an automatic confirmation and reminders?",
+          answers: [
+            ["Yes, they go out automatically", 2],
+            ["We call or text manually, sometimes", 1],
+            ["No", 0],
+            ["I'm not sure", 0]
+          ]
+        },
+        {
+          group: "No-shows",
+          question: "When a customer doesn't confirm, what happens?",
+          answers: [
+            ["We chase them before the truck rolls", 2],
+            ["The truck rolls anyway", 1],
+            ["We have no process for that", 0],
+            ["I'm not sure", 0]
+          ]
+        }
+      ];
+
+      var screens = {
+        intro: document.getElementById("intro-screen"),
+        question: document.getElementById("question-screen"),
+        capture: document.getElementById("capture-screen"),
+        result: document.getElementById("result-screen")
+      };
+      var current = 0;
+      var selected = new Array(questions.length);
+      var advanceTimer;
+
+      function showScreen(name) {
+        Object.keys(screens).forEach(function (key) {
+          screens[key].classList.toggle("active", key === name);
+        });
+        window.scrollTo(0, 0);
+      }
+
+      function renderQuestion() {
+        var item = questions[current];
+        document.getElementById("progress-label").textContent = (current + 1) + " of " + questions.length;
+        document.getElementById("progress-fill").style.width = (((current + 1) / questions.length) * 100) + "%";
+        document.getElementById("section-label").textContent = item.group;
+        document.getElementById("question-title").textContent = item.question;
+        document.getElementById("back-button").textContent = current === 0 ? "Back to start" : "Back";
+
+        var answers = document.getElementById("answers");
+        answers.innerHTML = "";
+        item.answers.forEach(function (answer, index) {
+          var button = document.createElement("button");
+          button.type = "button";
+          button.className = "answer" + (selected[current] && selected[current].index === index ? " selected" : "");
+          button.textContent = answer[0];
+          button.setAttribute("aria-pressed", selected[current] && selected[current].index === index ? "true" : "false");
+          button.addEventListener("click", function () {
+            clearTimeout(advanceTimer);
+            selected[current] = { index: index, score: answer[1] };
+            Array.prototype.forEach.call(answers.children, function (child) {
+              child.classList.remove("selected");
+              child.setAttribute("aria-pressed", "false");
+            });
+            button.classList.add("selected");
+            button.setAttribute("aria-pressed", "true");
+            advanceTimer = setTimeout(function () {
+              if (current < questions.length - 1) {
+                current += 1;
+                renderQuestion();
+                showScreen("question");
+              } else {
+                showScreen("capture");
+                document.getElementById("name").focus();
+              }
+            }, 0);
+          });
+          answers.appendChild(button);
+        });
+      }
+
+      document.getElementById("start-button").addEventListener("click", function () {
+        current = 0;
+        renderQuestion();
+        showScreen("question");
+      });
+
+      document.getElementById("back-button").addEventListener("click", function () {
+        clearTimeout(advanceTimer);
+        if (current === 0) {
+          showScreen("intro");
+        } else {
+          current -= 1;
+          renderQuestion();
+        }
+      });
+
+      document.getElementById("capture-back").addEventListener("click", function () {
+        current = questions.length - 1;
+        renderQuestion();
+        showScreen("question");
+      });
+
+      function scoreAssessment() {
+        var totals = {
+          "Missed calls": 0,
+          "Quote follow-up": 0,
+          "No-shows": 0
+        };
+        questions.forEach(function (item, index) {
+          totals[item.group] += selected[index].score;
+        });
+        return totals;
+      }
+
+      function makeBookingLink(name, email) {
+        var base = "https://cal.com/smhamberlin/15min";
+        var params = new URLSearchParams();
+        params.set("name", name);
+        params.set("email", email);
+        return base + "?" + params.toString();
+      }
+
+      function renderResult(name, email) {
+        var totals = scoreAssessment();
+        var total = totals["Missed calls"] + totals["Quote follow-up"] + totals["No-shows"];
+        var rows = Object.keys(totals).map(function (key, index) {
+          return { name: key, score: totals[key], order: index };
+        });
+        rows.sort(function (a, b) { return a.score - b.score || a.order - b.order; });
+        var worst = rows[0].name;
+        var level;
+        var summary;
+
+        if (total >= 14) {
+          level = "Tight ship";
+          summary = "Your shop is tighter than most. The one place to check is " + worst.toLowerCase() + ". Fifteen minutes and I'll show you how the shops ahead of you handle it.";
+        } else if (total >= 8) {
+          level = "Leaking";
+          summary = "You're losing jobs in at least one of the three. Your biggest leak is " + worst.toLowerCase() + ". Here's what it costs and how to plug it.";
+        } else {
+          level = "Bleeding";
+          summary = "The leaks are costing you real money every month. The good news: all three are fixable without hiring anyone. Start with " + worst.toLowerCase() + ".";
+        }
+
+        document.getElementById("result-level").textContent = level;
+        document.getElementById("result-summary").textContent = summary;
+        document.getElementById("worst-name").textContent = worst;
+        document.getElementById("booking-link").href = makeBookingLink(name, email);
+
+        var scores = document.getElementById("scores");
+        scores.innerHTML = "";
+        rows.forEach(function (row) {
+          var item = document.createElement("div");
+          item.className = "score-row";
+
+          var label = document.createElement("div");
+          label.className = "score-name";
+          label.textContent = row.name;
+
+          var number = document.createElement("div");
+          number.className = "score-number";
+          number.innerHTML = "<strong>" + row.score + "</strong> / 6";
+
+          var track = document.createElement("div");
+          track.className = "score-track";
+          track.setAttribute("role", "progressbar");
+          track.setAttribute("aria-label", row.name + " score");
+          track.setAttribute("aria-valuemin", "0");
+          track.setAttribute("aria-valuemax", "6");
+          track.setAttribute("aria-valuenow", String(row.score));
+
+          var fill = document.createElement("div");
+          fill.className = "score-fill";
+          fill.style.width = ((row.score / 6) * 100) + "%";
+          track.appendChild(fill);
+
+          item.appendChild(label);
+          item.appendChild(number);
+          item.appendChild(track);
+          scores.appendChild(item);
+        });
+        showScreen("result");
+      }
+
+      document.getElementById("contact-form").addEventListener("submit", function (event) {
+        event.preventDefault();
+        var form = event.currentTarget;
+        var fields = Array.prototype.slice.call(form.querySelectorAll("input"));
+        var firstInvalid = null;
+        fields.forEach(function (field) {
+          var invalid = !field.checkValidity();
+          field.setAttribute("aria-invalid", invalid ? "true" : "false");
+          if (invalid && !firstInvalid) firstInvalid = field;
+        });
+
+        var error = document.getElementById("form-error");
+        if (firstInvalid) {
+          error.textContent = firstInvalid.type === "email" && firstInvalid.value ? "Enter a valid email address." : "Fill in all four fields to see your score.";
+          firstInvalid.focus();
+          return;
+        }
+
+        error.textContent = "";
+        renderResult(document.getElementById("name").value.trim(), document.getElementById("email").value.trim());
+      });
+    })();
+  </script>
+</body>
+</html>
