@@ -340,8 +340,43 @@
     .score-track { grid-column: 1 / -1; height: 11px; border-radius: 99px; background: var(--line); overflow: hidden; }
     .score-fill { height: 100%; border-radius: inherit; background: var(--aqua); }
     .score-row:first-child .score-fill { background: var(--copper); }
-    .result .primary { display: block; margin-top: auto; }
-    .result-note { margin: 12px 0 0; color: var(--muted); text-align: center; font-size: .8rem; }
+    .screen.result { padding-bottom: 18px; }
+    .result-actions { margin-top: auto; padding-top: 22px; }
+    .result-actions .primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      margin: 0;
+      border-radius: 9px;
+      box-shadow: none;
+      font-size: 1rem;
+    }
+    .result-actions .primary:active { box-shadow: none; transform: translateY(1px); }
+    .result-note { margin: 8px 0 0; color: var(--muted); text-align: center; font-size: .84rem; }
+    .email-report {
+      margin-top: 20px;
+    }
+    .email-report-button {
+      width: 100%;
+      min-height: 54px;
+      padding: 12px 18px;
+      border: 2px solid var(--aqua);
+      border-radius: 9px;
+      background: transparent;
+      color: var(--ink);
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background .14s ease, transform .14s ease;
+    }
+    .email-report-button:hover { background: rgba(80, 175, 186, .14); }
+    .email-report-button:active { transform: translateY(1px); }
+    .email-report-button:disabled { opacity: .7; cursor: default; }
+    .email-report-button:focus-visible { outline: 3px solid var(--aqua); outline-offset: 3px; }
+    .email-report-note { margin: 8px 0 0; color: var(--muted); text-align: center; font-size: .86rem; }
+    .email-report-status { margin: 8px 0 0; text-align: center; }
+    .email-report-status:empty { display: none; }
 
     .site-links { display:flex; justify-content:center; gap:20px; flex-wrap:wrap; padding:0 16px 24px; font-size:.82rem; }
     .site-links a { color:var(--muted); text-underline-offset:3px; }
@@ -454,8 +489,16 @@
           <div><span>Biggest leak</span><strong id="worst-name"></strong></div>
         </div>
         <div class="scores" id="scores" aria-label="Scores by leak"></div>
-        <a class="primary" id="booking-link" href="https://cal.com/smhamberlin/15min" target="_blank" rel="noopener noreferrer">Book the 15-minute demo</a>
-        <p class="result-note">See how to plug the first leak with Steven.</p>
+        <div class="result-actions">
+          <a class="primary" id="booking-link" href="https://cal.com/smhamberlin/15min" target="_blank" rel="noopener noreferrer">Book the 15-minute demo</a>
+          <p class="result-note">Work with Steven to plug your first leak.</p>
+          <div class="email-report">
+            <button class="email-report-button" id="email-report-button" type="button">Send me my fix.</button>
+            <p class="email-report-note">Your one-page first fix guide, sent straight to your inbox.</p>
+            <p class="form-error email-report-status" id="report-error" role="alert"></p>
+            <p class="lead-success email-report-status" id="report-success" role="status" hidden>Report sent. Check your inbox.</p>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -572,6 +615,7 @@
       // Existing event tracking remains disabled until its receiving contract is updated.
       var TRACKING_URL = "";
       var INTAKE_ENDPOINT = "https://automation-x.app.n8n.cloud/webhook/slc-assessment-intake";
+      var REPORT_ENDPOINT = "https://automation-x.app.n8n.cloud/webhook/slc-leak-check-report";
       var FIRST_FIX_PDFS = {
         "Missed calls": "pdfs/fix-missed-calls.pdf",
         "Quote follow-up": "pdfs/fix-quote-followup.pdf",
@@ -580,6 +624,7 @@
       var funnel = { startedAt: null, qStart: null, questions: [] };
       var lastResult = null;
       var lastLead = null;
+      var reportLeadId = null;
 
       function track(eventName, data) {
         var payload = { event: eventName, at: new Date().toISOString(), page: "leak-check" };
@@ -814,13 +859,46 @@
             body: body
           }).then(function (response) {
             if (!response.ok) throw new Error("Intake failed");
+            return response.json().catch(function () { return null; });
           });
         }
-        attempt().catch(attempt).catch(function () {
+        attempt().catch(attempt).then(function (reply) {
+          if (reply && reply.ok === true && typeof reply.leadId === "string") {
+            reportLeadId = reply.leadId;
+          }
+        }).catch(function () {
           // Intake failure is logged by the browser; it never blocks results.
           console.warn("Assessment intake did not complete after one retry.");
         });
       }
+
+      document.getElementById("email-report-button").addEventListener("click", function () {
+        var button = this;
+        var error = document.getElementById("report-error");
+        error.textContent = "";
+        if (!reportLeadId) {
+          error.textContent = "We couldn't send your email yet. Please try again later.";
+          return;
+        }
+        button.disabled = true;
+        button.textContent = "Sending...";
+        fetch(REPORT_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain", "Accept": "application/json" },
+          body: JSON.stringify({ leadId: reportLeadId })
+        }).then(function (response) {
+          if (!response.ok) throw new Error("Report failed");
+          return response.json();
+        }).then(function (reply) {
+          if (!reply || reply.ok !== true) throw new Error("Report failed");
+          button.textContent = "Report sent";
+          document.getElementById("report-success").hidden = false;
+        }).catch(function () {
+          button.disabled = false;
+          button.textContent = "Send me my fix.";
+          error.textContent = "The email could not be sent. Please try again later.";
+        });
+      });
 
       document.getElementById("lead-form").addEventListener("submit", function (event) {
         event.preventDefault();
