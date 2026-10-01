@@ -849,7 +849,21 @@
           total: result.total,
           worst_leak: result.worst,
           level: result.level,
-          submitted_at: new Date().toISOString()
+          submitted_at: new Date().toISOString(),
+          notSureCount: result.notSure,
+          seconds: funnel.startedAt ? Math.round((Date.now() - funnel.startedAt) / 1000) : null,
+          answers: questions.map(function (item, index) {
+            var choice = selected[index];
+            var timing = funnel.questions[index];
+            return {
+              number: index + 1,
+              category: item.group,
+              question: item.question,
+              answer: item.answers[choice.index][0],
+              score: choice.score,
+              seconds: timing ? Math.round(timing.ms / 1000) : null
+            };
+          })
         };
         var body = JSON.stringify(payload);
         function attempt() {
