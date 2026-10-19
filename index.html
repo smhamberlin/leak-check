@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <title>Where Is Your Business Leaking?</title>
   <link rel="stylesheet" href="/consent.css" />
+  <script src="/analytics.js" defer></script>
   <script src="/consent.js" defer></script>
   <style>
     :root {
@@ -613,8 +614,6 @@
       var selected = new Array(questions.length);
       var advanceTimer;
 
-      // Existing event tracking remains disabled until its receiving contract is updated.
-      var TRACKING_URL = "";
       var INTAKE_ENDPOINT = "https://automation-x.app.n8n.cloud/webhook/slc-assessment-intake";
       var PROGRESS_ENDPOINT = "https://automation-x.app.n8n.cloud/webhook/slc-leak-check-progress";
       var REPORT_ENDPOINT = "https://automation-x.app.n8n.cloud/webhook/slc-leak-check-report";
@@ -630,22 +629,11 @@
       var submissionId = null;
       var saveBusy = false;
 
-      function track(eventName, data) {
-        var payload = { event: eventName, at: new Date().toISOString(), page: "leak-check" };
-        if (data) {
-          for (var key in data) {
-            if (Object.prototype.hasOwnProperty.call(data, key)) payload[key] = data[key];
-          }
-        }
-        if (TRACKING_URL) {
-          try {
-            if (navigator.sendBeacon) {
-              navigator.sendBeacon(TRACKING_URL, JSON.stringify(payload));
-            } else {
-              fetch(TRACKING_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
-            }
-          } catch (e) { /* tracking must never break the quiz */ }
-        }
+      function track(eventName) {
+        // Never pass contact details, answers, scores or booking URLs to analytics.
+        var names = {quiz_started: 'contact_saved', quiz_completed: 'completed',
+          booking_clicked: 'booking_clicked'};
+        if (window.slcTrack) window.slcTrack(names[eventName] || eventName);
       }
 
       function showScreen(name) {
@@ -694,6 +682,7 @@
             document.getElementById("back-button").disabled = true;
             Array.prototype.forEach.call(answers.children, function (child) { child.disabled = true; });
             saveStage(current === questions.length - 1 ? "complete" : "incomplete").then(function () {
+              track("q" + (current + 1) + "_saved");
               saveBusy = false;
               document.getElementById("back-button").disabled = false;
               if (current < questions.length - 1) {
@@ -707,6 +696,7 @@
               saveBusy = false;
               document.getElementById("back-button").disabled = false;
               Array.prototype.forEach.call(answers.children, function (child) { child.disabled = false; });
+              track("save_failed");
               document.getElementById("question-error").textContent = "We couldn't save this answer. Tap it again to retry.";
             });
           });
@@ -716,6 +706,7 @@
 
       document.getElementById("start-button").addEventListener("click", function () {
         showScreen("capture");
+        track("contact_viewed");
       });
 
       document.getElementById("back-button").addEventListener("click", function () {
@@ -924,6 +915,7 @@
           error.textContent = "We couldn't send your email yet. Please try again later.";
           return;
         }
+        track("report_requested");
         button.disabled = true;
         button.textContent = "Sending...";
         fetch(REPORT_ENDPOINT, {
@@ -935,11 +927,13 @@
           return response.json();
         }).then(function (reply) {
           if (!reply || reply.ok !== true) throw new Error("Report failed");
+          track("report_sent");
           button.textContent = "Report sent";
           document.getElementById("report-success").hidden = false;
         }).catch(function () {
           button.disabled = false;
           button.textContent = "Send me my fix.";
+          track("report_failed");
           error.textContent = "The email could not be sent. Please try again later.";
         });
       });
@@ -959,6 +953,7 @@
           if (invalid && !bad) bad = field;
         });
         if (bad) {
+          track("contact_invalid");
           error.textContent = bad.type === "email" && bad.value.trim()
             ? "Enter a valid email address."
             : "Add your name, shop, phone, and email to continue.";
@@ -966,6 +961,7 @@
           return;
         }
         error.textContent = "";
+        track("contact_submit");
         lastLead = {
           name: nameField.value.trim(),
           shop: shopField.value.trim(),
@@ -997,6 +993,7 @@
         }).catch(function () {
           saveBusy = false;
           submitButton.disabled = false;
+          track("save_failed");
           error.textContent = "We couldn't save your details. Try Continue again.";
         });
       });

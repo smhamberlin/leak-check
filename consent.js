@@ -68,6 +68,10 @@
     function syncChoice() {
         if (choice === 'accept' && !globalOptOut()) startClarity();
         else stopClarity();
+        window.slcAnalyticsAllowed = choice === 'accept' && !globalOptOut();
+        window.dispatchEvent(new CustomEvent('slc:analytics-consent', {
+            detail: {allowed: window.slcAnalyticsAllowed}
+        }));
     }
     function updatePreferenceLinks() {
         document.querySelectorAll('a[href$="#cookie-preferences"]').forEach(function (link) {
